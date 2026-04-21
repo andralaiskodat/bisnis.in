@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  OWNER
+  KASIR
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(KASIR)
+  umkmId    String?
+  umkm      Umkm?    @relation(fields: [umkmId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Umkm {
+  id           String        @id @default(cuid())
+  name         String
+  slug         String        @unique
+  description  String?
+  phone        String?
+  openHours    String?
+  bannerUrl    String?
+  isActive     Boolean       @default(true)
+  users        User[]
+  products     Product[]
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+}
+
+model Product {
+  id        String            @id @default(cuid())
+  name      String
+  category  String
+  price     Int
+  costPrice Int
+  stock     Int               @default(0)
+  imageUrl  String?
+  isVisible Boolean           @default(true)
+  umkmId    String
+  umkm      Umkm              @relation(fields: [umkmId], references: [id])
+  items     TransactionItem[]
+}
+
+model Transaction {
+  id            String            @id @default(cuid())
+  totalAmount   Int
+  paymentMethod String
+  umkmId        String
+  umkm          Umkm              @relation(fields: [umkmId], references: [id])
+  items         TransactionItem[]
+  createdAt     DateTime          @default(now())
+}
+
+model TransactionItem {
+  id            String      @id @default(cuid())
+  qty           Int
+  price         Int
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id])
+}
