@@ -24,7 +24,7 @@ export async function POST(req: Request) {
         paymentMethod,
         totalAmount,
         items: {
-          create: items.map((item: any) => ({
+          create: items.map((item: { productId: string; qty: number; price: number }) => ({
             productId: item.productId,
             qty: item.qty,
             price: item.price,

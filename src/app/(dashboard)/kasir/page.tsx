@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Minus, Trash2, CreditCard, Banknote, QrCode, Receipt } from "lucide-react";
 import { toast } from "sonner";
+import { KasirHistoryClient } from "./KasirHistoryClient";
 import {
   Dialog,
   DialogContent,
@@ -17,12 +18,13 @@ import {
 } from "@/components/ui/dialog";
 
 export default function KasirPage() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<{ id: string; name: string; price: number; stock: number }[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [showReceipt, setShowReceipt] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [lastTransaction, setLastTransaction] = useState<any>(null);
 
   const cart = useCartStore();
@@ -33,7 +35,7 @@ export default function KasirPage() {
         const res = await fetch(`/api/products?search=${search}`);
         const data = await res.json();
         setProducts(Array.isArray(data) ? data : []);
-      } catch (error) {
+      } catch {
         toast.error("Gagal mengambil data produk");
       } finally {
         setLoading(false);
@@ -66,7 +68,7 @@ export default function KasirPage() {
       } else {
         toast.error("Transaksi gagal diproses");
       }
-    } catch (error) {
+    } catch {
       toast.error("Terjadi kesalahan sistem");
     } finally {
       setCheckoutLoading(false);
@@ -74,37 +76,47 @@ export default function KasirPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-6">
+    <div className="flex flex-col lg:flex-row h-full gap-6">
       {/* Product Grid */}
       <div className="flex-1 flex flex-col gap-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <Input
-            placeholder="Cari menu..."
-            className="pl-10"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              placeholder="Cari menu..."
+              className="pl-10 bg-white/60 backdrop-blur-md border-white/40 shadow-sm focus:bg-white transition-all rounded-xl w-full"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <KasirHistoryClient />
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto pb-4">
           {loading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="h-32 bg-gray-200 rounded-xl animate-pulse"></div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {products.map((p) => (
                 <Card
                   key={p.id}
-                  className={`cursor-pointer transition-all hover:border-[#1D9E75] hover:shadow-md ${p.stock <= 0 ? 'opacity-50 pointer-events-none' : ''}`}
+                  className={`cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#1D9E75]/10 hover:border-[#1D9E75]/30 glass-card rounded-2xl ${p.stock <= 0 ? 'opacity-50 pointer-events-none' : ''}`}
                   onClick={() => cart.addItem({ id: p.id, name: p.name, price: p.price })}
                 >
                   <CardContent className="p-4 text-center">
-                    <div className="w-full h-24 bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
-                      <span className="text-4xl">🍲</span>
+                    <div className="w-full h-24 bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                      {p.imageUrl ? (
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                        </>
+                      ) : (
+                        <span className="text-4xl">🍲</span>
+                      )}
                     </div>
                     <h3 className="font-medium text-sm line-clamp-1" title={p.name}>{p.name}</h3>
                     <p className="text-[#1D9E75] font-bold mt-1">Rp {p.price.toLocaleString('id-ID')}</p>
@@ -123,8 +135,8 @@ export default function KasirPage() {
       </div>
 
       {/* Cart Panel */}
-      <div className="w-96 bg-white rounded-xl shadow-sm border flex flex-col overflow-hidden">
-        <div className="p-4 border-b bg-gray-50">
+      <div className="lg:w-96 w-full glass-card rounded-2xl border border-white/40 flex flex-col overflow-hidden relative z-10 shadow-[0_8px_30px_rgb(0,0,0,0.08)] lg:max-h-full max-h-72">
+        <div className="p-4 border-b border-white/20 bg-white/40 backdrop-blur-md">
           <h2 className="font-semibold text-lg flex items-center gap-2">
             <Receipt className="w-5 h-5" /> Pesanan Saat Ini
           </h2>
@@ -138,7 +150,7 @@ export default function KasirPage() {
             </div>
           ) : (
             cart.items.map((item) => (
-              <div key={item.productId} className="flex justify-between items-center gap-2">
+              <div key={item.productId} className="flex justify-between items-center gap-2 p-2 rounded-xl hover:bg-white/50 transition-colors">
                 <div className="flex-1">
                   <h4 className="font-medium text-sm">{item.name}</h4>
                   <p className="text-[#1D9E75] text-xs font-bold">Rp {item.price.toLocaleString('id-ID')}</p>
@@ -160,7 +172,7 @@ export default function KasirPage() {
           )}
         </div>
 
-        <div className="p-4 border-t bg-gray-50">
+        <div className="p-5 border-t border-white/20 bg-white/60 backdrop-blur-xl">
           <div className="flex justify-between mb-4">
             <span className="text-gray-600 font-medium">Total</span>
             <span className="text-xl font-bold text-[#1D9E75]">Rp {cart.getTotal().toLocaleString('id-ID')}</span>
@@ -215,7 +227,7 @@ export default function KasirPage() {
                 <p>ID: {lastTransaction.id.slice(-8).toUpperCase()}</p>
               </div>
               <div className="space-y-2 mb-4 border-b pb-4">
-                {lastTransaction.items.map((item: any, i: number) => (
+                {lastTransaction.items.map((item: { qty: number; name: string; price: number }, i: number) => (
                   <div key={i} className="flex justify-between">
                     <span>{item.qty}x {item.name}</span>
                     <span>Rp {(item.qty * item.price).toLocaleString('id-ID')}</span>
@@ -240,7 +252,7 @@ export default function KasirPage() {
 }
 
 // Minimal dummy ShoppingCart icon component for fallback
-function ShoppingCart(props: any) {
+function ShoppingCart(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}

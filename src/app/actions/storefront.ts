@@ -15,18 +15,35 @@ export async function updateStorefront(formData: FormData) {
   const description = formData.get("description") as string;
   const phone = formData.get("phone") as string;
   const openHours = formData.get("openHours") as string;
+  const city = formData.get("city") as string;
+  const address = formData.get("address") as string;
+  const mapsUrl = formData.get("mapsUrl") as string;
+  const bannerFile = formData.get("banner") as File | null;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = {
+    name,
+    description,
+    phone,
+    openHours,
+    city,
+    address,
+    mapsUrl,
+  };
+
+  if (bannerFile && bannerFile.size > 0) {
+    const buffer = await bannerFile.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString("base64");
+    data.bannerUrl = `data:${bannerFile.type};base64,${base64}`;
+  }
 
   await prisma.umkm.update({
     where: { id: session.user.umkmId },
-    data: {
-      name,
-      description,
-      phone,
-      openHours,
-    }
+    data,
   });
 
   revalidatePath("/storefront/setting");
-  revalidatePath(`/warung/[slug]`, 'page');
+  revalidatePath("/", "page");
+  revalidatePath(`/warung/${session.user.umkmId}`); // Adjusting revalidate if needed
 }
 

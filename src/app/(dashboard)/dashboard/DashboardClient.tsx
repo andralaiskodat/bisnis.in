@@ -28,7 +28,7 @@ export function DashboardClient({
   maxQty,
   recentTx,
 }: Props) {
-  const [insights, setInsights] = useState<any[]>([]);
+  const [insights, setInsights] = useState<{ icon: string; text: string }[]>([]);
   const [insightLoading, setInsightLoading] = useState(true);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export function DashboardClient({
         const res = await fetch("/api/ai/insight");
         const data = await res.json();
         if (data.insights) setInsights(data.insights);
-      } catch (error) {
+      } catch {
         console.error("Failed to fetch AI insights");
       } finally {
         setInsightLoading(false);
@@ -54,55 +54,59 @@ export function DashboardClient({
       title: "Pendapatan Hari Ini",
       value: formatRupiah(pendapatanHariIni),
       icon: DollarSign,
-      color: "text-green-600",
-      bg: "bg-green-50",
+      color: "text-emerald-700",
+      bg: "bg-gradient-to-br from-emerald-100 to-emerald-50",
+      border: "border-emerald-200",
       sub: "Total pemasukan hari ini",
     },
     {
       title: "Keuntungan Bersih",
       value: formatRupiah(keuntunganBersih),
       icon: Activity,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
+      color: "text-blue-700",
+      bg: "bg-gradient-to-br from-blue-100 to-blue-50",
+      border: "border-blue-200",
       sub: "Pendapatan dikurangi modal",
     },
     {
       title: "Total Transaksi",
       value: totalTransaksiHariIni.toString(),
       icon: FileText,
-      color: "text-orange-600",
-      bg: "bg-orange-50",
+      color: "text-amber-700",
+      bg: "bg-gradient-to-br from-amber-100 to-amber-50",
+      border: "border-amber-200",
       sub: "Jumlah transaksi hari ini",
     },
     {
       title: "Pengeluaran (Modal)",
       value: formatRupiah(pengeluaranHariIni),
       icon: Package,
-      color: "text-red-500",
-      bg: "bg-red-50",
+      color: "text-rose-700",
+      bg: "bg-gradient-to-br from-rose-100 to-rose-50",
+      border: "border-rose-200",
       sub: "Total harga modal terjual",
     },
   ];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard Bisnis</h1>
+    <div className="space-y-4 md:space-y-6">
+      <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard Bisnis</h1>
 
       {/* Metric Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {metricCards.map((card) => {
           const Icon = card.icon;
           return (
-            <Card key={card.title} className="hover:shadow-md transition-shadow">
+            <Card key={card.title} className={`hover:-translate-y-1 hover:shadow-xl transition-all duration-300 border-t-4 ${card.border} glass-card`}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">{card.title}</CardTitle>
-                <div className={`p-2 rounded-lg ${card.bg}`}>
-                  <Icon className={`h-4 w-4 ${card.color}`} />
+                <CardTitle className="text-sm font-semibold text-gray-700">{card.title}</CardTitle>
+                <div className={`p-2.5 rounded-xl shadow-sm ${card.bg}`}>
+                  <Icon className={`h-5 w-5 ${card.color}`} />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className={`text-2xl font-bold ${card.color}`}>{card.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">{card.sub}</p>
+                <div className={`text-3xl font-extrabold tracking-tight ${card.color} drop-shadow-sm`}>{card.value}</div>
+                <p className="text-xs text-gray-500 font-medium mt-1">{card.sub}</p>
               </CardContent>
             </Card>
           );
@@ -128,7 +132,7 @@ export function DashboardClient({
                   tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
-                  formatter={(v: number) => [formatRupiah(v), "Pendapatan"]}
+                  formatter={(v: unknown) => [formatRupiah(Number(v)), "Pendapatan"]}
                   contentStyle={{ borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "12px" }}
                 />
                 <Bar dataKey="total" fill="#1D9E75" radius={[6, 6, 0, 0]} />
@@ -138,10 +142,11 @@ export function DashboardClient({
         </Card>
 
         {/* AI Insight */}
-        <Card className="bg-gradient-to-br from-[#1D9E75]/5 to-[#1D9E75]/10 border-[#1D9E75]/20">
+        <Card className="bg-gradient-to-br from-[#1D9E75] to-[#0f7656] text-white border-0 shadow-lg shadow-[#1D9E75]/30 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-[#1D9E75] text-base">
-              <Sparkles className="w-5 h-5" /> AI Insight
+            <CardTitle className="flex items-center gap-2 text-white text-lg font-bold drop-shadow-md">
+              <Sparkles className="w-5 h-5 animate-pulse text-yellow-300" /> AI Insight
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -151,17 +156,17 @@ export function DashboardClient({
               </div>
             ) : insights.length > 0 ? (
               insights.map((insight, index) => (
-                <div key={index} className="flex gap-3 bg-white/80 backdrop-blur p-3 rounded-xl border border-[#1D9E75]/15 shadow-sm">
+                <div key={index} className="flex gap-3 bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20 shadow-sm hover:bg-white/20 transition-colors">
                   <div className="mt-0.5 flex-shrink-0">
-                    {insight.icon === "trending-up" && <TrendingUp className="w-4 h-4 text-blue-500" />}
-                    {insight.icon === "clock" && <Clock className="w-4 h-4 text-orange-500" />}
-                    {insight.icon === "sparkles" && <Sparkles className="w-4 h-4 text-yellow-500" />}
+                    {insight.icon === "trending-up" && <TrendingUp className="w-5 h-5 text-blue-200" />}
+                    {insight.icon === "clock" && <Clock className="w-5 h-5 text-amber-200" />}
+                    {insight.icon === "sparkles" && <Sparkles className="w-5 h-5 text-yellow-200" />}
                   </div>
-                  <p className="text-xs text-gray-700 leading-relaxed">{insight.text}</p>
+                  <p className="text-sm text-white/90 font-medium leading-relaxed drop-shadow-sm">{insight.text}</p>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-gray-500 text-center py-4">Tidak ada insight saat ini.</p>
+              <p className="text-sm text-white/70 text-center py-4 font-medium">Tidak ada insight saat ini.</p>
             )}
           </CardContent>
         </Card>

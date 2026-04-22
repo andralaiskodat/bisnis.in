@@ -20,6 +20,7 @@ model User {
   email     String   @unique
   password  String
   role      Role     @default(KASIR)
+  nik       String?
   umkmId    String?
   umkm      Umkm?    @relation(fields: [umkmId], references: [id])
   createdAt DateTime @default(now())
@@ -29,11 +30,14 @@ model Umkm {
   id           String        @id @default(cuid())
   name         String
   slug         String        @unique
+  city         String?
+  address      String?
+  mapsUrl      String?
   description  String?
   phone        String?
   openHours    String?
   bannerUrl    String?
-  isActive     Boolean       @default(true)
+  isActive     Boolean       @default(false)
   users        User[]
   products     Product[]
   transactions Transaction[]
@@ -61,6 +65,7 @@ model Transaction {
   umkmId        String
   umkm          Umkm              @relation(fields: [umkmId], references: [id])
   items         TransactionItem[]
+  reports       TransactionReport[]
   createdAt     DateTime          @default(now())
 }
 
@@ -72,4 +77,15 @@ model TransactionItem {
   transaction   Transaction @relation(fields: [transactionId], references: [id])
   productId     String
   product       Product     @relation(fields: [productId], references: [id])
+}
+
+model TransactionReport {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  umkmId        String
+  reportedBy    String      // Nama kasir yang melapor
+  reason        String      // Alasan / penjelasan kesalahan
+  status        String      @default("PENDING") // PENDING | RESOLVED
+  createdAt     DateTime    @default(now())
 }

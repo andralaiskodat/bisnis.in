@@ -22,7 +22,7 @@ export default async function WarungMenuPage({ params, searchParams }: Props) {
 
   if (!umkm) notFound();
 
-  const categories = [...new Set(umkm.products.map(p => p.category))];
+  const categories = Array.from(new Set(umkm.products.map(p => p.category)));
   const activeCategory = searchParams.category || 'Semua';
 
   const filteredProducts = activeCategory === 'Semua'
@@ -30,6 +30,7 @@ export default async function WarungMenuPage({ params, searchParams }: Props) {
     : umkm.products.filter(p => p.category === activeCategory);
 
   // Group by category
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const grouped = filteredProducts.reduce((acc: Record<string, any[]>, p) => {
     if (!acc[p.category]) acc[p.category] = [];
     acc[p.category].push(p);
@@ -83,8 +84,15 @@ export default async function WarungMenuPage({ params, searchParams }: Props) {
             <div className="space-y-3">
               {items.map((p) => (
                 <div key={p.id} className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="w-20 h-20 bg-[#1D9E75]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-4xl">🍲</span>
+                  <div className="w-20 h-20 bg-[#1D9E75]/10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {p.imageUrl ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                      </>
+                    ) : (
+                      <span className="text-4xl">🍲</span>
+                    )}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800">{p.name}</h3>

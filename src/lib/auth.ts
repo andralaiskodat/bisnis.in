@@ -33,6 +33,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid password');
         }
 
+        if (user.role !== "SUPER_ADMIN" && user.umkm && user.umkm.isActive === false) {
+          throw new Error('Akun Bisnis Anda sedang tidak aktif atau ditangguhkan. Silakan hubungi Super Admin.');
+        }
+
         return {
           id: user.id,
           email: user.email,

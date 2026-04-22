@@ -62,4 +62,21 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Custom Modern Utilities */
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-sm;
+  }
+  
+  .glass-dark {
+    @apply bg-gray-900/70 backdrop-blur-xl border border-gray-800/50 shadow-lg;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)];
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#1D9E75] to-[#10b981];
+  }
 }

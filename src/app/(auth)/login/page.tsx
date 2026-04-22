@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Store, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Store, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,13 +29,13 @@ export default function LoginPage() {
       });
 
       if (res?.error) {
-        toast.error("Gagal login: Email atau password salah.");
+        toast.error(res.error || "Gagal login: Periksa email dan password Anda.");
       } else {
         toast.success("Berhasil login!");
         router.push("/dashboard");
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       toast.error("Terjadi kesalahan sistem.");
     } finally {
       setIsLoading(false);
@@ -42,7 +43,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4 relative">
+      <Link 
+        href="/" 
+        className="absolute top-6 left-6 flex items-center gap-2 text-gray-500 hover:text-[#1D9E75] transition-colors font-medium text-sm bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100"
+      >
+        <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
+      </Link>
       <div className="mb-8 flex flex-col items-center">
         <div className="w-16 h-16 bg-[#1D9E75] rounded-full flex items-center justify-center mb-4">
           <Store className="w-8 h-8 text-white" />
@@ -113,6 +120,13 @@ export default function LoginPage() {
                 admin123
               </div>
             </div>
+          </div>
+          
+          <div className="mt-6 text-center text-sm text-gray-600">
+            Belum memiliki akun bisnis?{" "}
+            <Link href="/register" className="text-[#1D9E75] font-semibold hover:underline">
+              Daftar sekarang
+            </Link>
           </div>
         </CardContent>
       </Card>

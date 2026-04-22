@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { Store, Clock, Phone, MessageCircle } from "lucide-react";
+import { Store, Clock, Phone, MessageCircle, MapPin, ExternalLink } from "lucide-react";
 import Link from "next/link";
 
 
@@ -80,6 +80,33 @@ export default async function WarungPage({ params }: Props) {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+        {/* Location Section */}
+        <section className="bg-white rounded-2xl p-6 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-[#1D9E75]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <MapPin className="w-6 h-6 text-[#1D9E75]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-bold text-gray-800 mb-1">Lokasi Warung</h2>
+              <p className="text-sm text-gray-400 font-medium mb-2">{umkm.city}</p>
+              <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                {umkm.address || "Alamat lengkap belum ditambahkan."}
+              </p>
+              
+              {umkm.mapsUrl && (
+                <a
+                  href={umkm.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-[#1D9E75] text-sm font-bold hover:underline"
+                >
+                  <ExternalLink className="w-4 h-4" /> Buka di Google Maps
+                </a>
+              )}
+            </div>
+          </div>
+        </section>
+
         {/* About */}
         {umkm.description && (
           <section className="bg-white rounded-2xl p-6 shadow-sm">
