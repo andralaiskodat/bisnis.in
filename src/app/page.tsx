@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // Revalidate every 60 seconds
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Store, ChevronRight, Clock, Phone } from "lucide-react";

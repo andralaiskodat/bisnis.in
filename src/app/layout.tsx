@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { Toaster } from "@/components/ui/sonner";
+import NextTopLoader from "nextjs-toploader";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -20,6 +21,17 @@ export default function RootLayout({
   return (
     <html lang="id" className={cn("font-sans antialiased", inter.variable)}>
       <body>
+        <NextTopLoader 
+          color="#1D9E75"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={3}
+          crawl={true}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+          shadow="0 0 10px #1D9E75,0 0 5px #1D9E75"
+        />
         <AuthProvider>
           {children}
           <Toaster />

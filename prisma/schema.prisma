@@ -24,6 +24,8 @@ model User {
   umkmId    String?
   umkm      Umkm?    @relation(fields: [umkmId], references: [id])
   createdAt DateTime @default(now())
+
+  @@index([umkmId])
 }
 
 model Umkm {
@@ -56,6 +58,8 @@ model Product {
   umkmId    String
   umkm      Umkm              @relation(fields: [umkmId], references: [id])
   items     TransactionItem[]
+
+  @@index([umkmId])
 }
 
 model Transaction {
@@ -67,6 +71,8 @@ model Transaction {
   items         TransactionItem[]
   reports       TransactionReport[]
   createdAt     DateTime          @default(now())
+
+  @@index([umkmId, createdAt])
 }
 
 model TransactionItem {
