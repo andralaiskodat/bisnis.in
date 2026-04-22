@@ -8,9 +8,20 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { resolveReport } from "@/app/actions/report";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
-export function LaporanReportsClient({ initialReports }: { initialReports: any[] }) {
+interface Report {
+  id: string;
+  reportedBy: string;
+  reason: string;
+  createdAt: Date | string;
+  transactionId: string;
+  transaction: {
+    id: string;
+    totalAmount: number;
+  };
+}
+
+export function LaporanReportsClient({ initialReports }: { initialReports: Report[] }) {
   const [reports, setReports] = useState(initialReports);
   const [resolving, setResolving] = useState<string | null>(null);
 
@@ -22,7 +33,7 @@ export function LaporanReportsClient({ initialReports }: { initialReports: any[]
       await resolveReport(reportId, transactionId, action);
       toast.success(action === "DELETE" ? "Transaksi berhasil dihapus" : "Laporan ditandai selesai");
       setReports(reports.filter(r => r.id !== reportId));
-    } catch (error) {
+    } catch {
       toast.error("Gagal memproses laporan");
     } finally {
       setResolving(null);

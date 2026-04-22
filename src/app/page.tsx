@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Store, ChevronRight, Clock, Phone, MapPin } from "lucide-react";
+import { Store, ChevronRight, Clock, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";

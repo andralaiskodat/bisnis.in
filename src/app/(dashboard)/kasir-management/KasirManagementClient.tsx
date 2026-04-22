@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, UserPlus, Key, Mail, User } from "lucide-react";
+import { Trash2, UserPlus, Key, Mail, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function KasirManagementClient() {
   const [open, setOpen] = useState(false);
@@ -37,8 +36,9 @@ export function KasirManagementClient() {
             await createCashier(formData);
             toast.success("Akun kasir berhasil dibuat");
             setOpen(false);
-          } catch (error: any) {
-            toast.error(error.message || "Gagal membuat akun kasir");
+          } catch (error: unknown) {
+            const err = error as Error;
+            toast.error(err.message || "Gagal membuat akun kasir");
           } finally {
             setLoading(false);
           }
@@ -88,8 +88,9 @@ export function DeleteCashierButton({ id, name }: { id: string, name: string }) 
           try {
             await deleteCashier(id);
             toast.success("Akun kasir dihapus");
-          } catch (error: any) {
-            toast.error(error.message || "Gagal menghapus akun");
+          } catch (error: unknown) {
+            const err = error as Error;
+            toast.error(err.message || "Gagal menghapus akun");
           } finally {
             setLoading(false);
           }

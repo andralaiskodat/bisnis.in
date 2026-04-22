@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { History, AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
+import { History, AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,13 +19,28 @@ import { toast } from "sonner";
 import { getTodayTransactions, createReport } from "@/app/actions/report";
 import { Badge } from "@/components/ui/badge";
 
+interface Transaction {
+  id: string;
+  totalAmount: number;
+  createdAt: Date | string;
+  items: Array<{
+    qty: number;
+    product: {
+      name: string;
+    };
+  }>;
+  reports?: Array<{
+    status: string;
+  }>;
+}
+
 export function KasirHistoryClient() {
   const [open, setOpen] = useState(false);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   
   const [reportOpen, setReportOpen] = useState(false);
-  const [selectedTx, setSelectedTx] = useState<any>(null);
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -33,30 +48,32 @@ export function KasirHistoryClient() {
     setLoading(true);
     try {
       const data = await getTodayTransactions();
-      setTransactions(data);
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setTransactions(data as any);
+    } catch {
       toast.error("Gagal mengambil riwayat transaksi");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenReport = (tx: any) => {
+  const handleOpenReport = (tx: Transaction) => {
     setSelectedTx(tx);
     setReason("");
     setReportOpen(true);
   };
 
   const handleSubmitReport = async () => {
-    if (!reason.trim()) return toast.error("Alasan harus diisi");
+    if (!reason.trim() || !selectedTx) return toast.error("Alasan harus diisi");
     setSubmitting(true);
     try {
       await createReport(selectedTx.id, reason);
       toast.success("Laporan berhasil dikirim ke Owner");
       setReportOpen(false);
       fetchTransactions(); // Refresh status
-    } catch (error: any) {
-      toast.error(error.message || "Gagal mengirim laporan");
+    } catch (error: unknown) {
+      const err = error as Error;
+      toast.error(err.message || "Gagal mengirim laporan");
     } finally {
       setSubmitting(false);
     }
@@ -100,7 +117,7 @@ export function KasirHistoryClient() {
                     </div>
                     <p className="text-sm font-semibold text-gray-900">Rp {tx.totalAmount.toLocaleString("id-ID")}</p>
                     <p className="text-xs text-gray-500 line-clamp-1">
-                      {tx.items.map((i: any) => `${i.qty}x ${i.product.name}`).join(", ")}
+                      {tx.items.map((i) => `${i.qty}x ${i.product.name}`).join(", ")}
                     </p>
                   </div>
                   
