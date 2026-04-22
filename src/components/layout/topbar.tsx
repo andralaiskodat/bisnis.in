@@ -1,10 +1,19 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { Menu } from "lucide-react";
+import { Menu, LogOut, User } from "lucide-react";
 import { Button } from "../ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 
 export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { data: session } = useSession();
@@ -20,7 +29,40 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
           Selamat datang, {session?.user?.name?.split(" ")[0]}! 👋
         </h2>
       </div>
-      <div className="hidden md:block text-sm text-gray-500 font-medium">{today}</div>
+      
+      <div className="flex items-center gap-4">
+        <div className="hidden lg:block text-sm text-gray-500 font-medium">{today}</div>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 overflow-hidden hover:bg-white/60 transition-colors">
+              <Avatar className="h-10 w-10 border border-white/50 shadow-sm">
+                <AvatarFallback className="bg-gradient-to-br from-[#1D9E75] to-[#10b981] text-white font-bold">
+                  {session?.user?.name?.charAt(0).toUpperCase() || <User className="w-5 h-5" />}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56 mt-2" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1 p-1">
+                <p className="text-sm font-semibold leading-none text-gray-900">{session?.user?.name}</p>
+                <p className="text-xs leading-none text-gray-500 truncate">
+                  {session?.user?.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer p-2.5 rounded-lg transition-colors"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span className="font-medium">Keluar</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   );
 }

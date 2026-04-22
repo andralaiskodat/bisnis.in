@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, ShoppingCart, FileText, Package, Settings, Users, Store, LogOut } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
-import { Button } from "../ui/button";
+import { LayoutDashboard, ShoppingCart, FileText, Package, Settings, Users, Store } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 const ownerRoutes = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -90,25 +89,6 @@ export function Sidebar({
         })}
       </nav>
 
-      {/* User Info & Logout */}
-      <div className="p-4 border-t border-white/40">
-        <div className={cn("mb-3 px-3", !isOpen && !isMobile && "hidden")}>
-          <p className="text-sm font-semibold text-gray-900 truncate">{session?.user?.name}</p>
-          <p className="text-xs text-gray-500 truncate">{session?.user?.email}</p>
-        </div>
-        <Button
-          variant="outline"
-          title={!isOpen && !isMobile ? "Logout" : undefined}
-          className={cn(
-            "flex items-center text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 transition-all",
-            !isOpen && !isMobile ? "w-10 h-10 p-0 mx-auto justify-center" : "w-full justify-start gap-3"
-          )}
-          onClick={() => signOut({ callbackUrl: "/login" })}
-        >
-          <LogOut className="w-4 h-4 flex-shrink-0" />
-          <span className={cn(!isOpen && !isMobile && "hidden")}>Logout</span>
-        </Button>
-      </div>
     </aside>
   );
 }
