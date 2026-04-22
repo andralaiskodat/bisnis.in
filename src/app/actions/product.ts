@@ -5,8 +5,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
-
-
 export async function addProduct(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user || !session.user.umkmId) throw new Error("Unauthorized");
@@ -69,8 +67,16 @@ export async function updateProduct(id: string, formData: FormData) {
   const imageFile = formData.get("image") as File | null;
   const removeImage = formData.get("removeImage") as string;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any = { name, category, price, costPrice, stock };
+  interface ProductUpdateData {
+    name: string;
+    category: string;
+    price: number;
+    costPrice: number;
+    stock: number;
+    imageUrl?: string | null;
+  }
+
+  const data: ProductUpdateData = { name, category, price, costPrice, stock };
 
   if (removeImage === "true") {
     data.imageUrl = null;
@@ -87,4 +93,3 @@ export async function updateProduct(id: string, formData: FormData) {
 
   revalidatePath("/inventori");
 }
-

@@ -17,6 +17,17 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+interface LastTransaction {
+  id: string;
+  totalAmount: number;
+  items: {
+    productId: string;
+    name: string;
+    price: number;
+    qty: number;
+  }[];
+}
+
 export default function KasirPage() {
   const [products, setProducts] = useState<{ id: string; name: string; price: number; stock: number; imageUrl?: string | null }[]>([]);
   const [search, setSearch] = useState("");
@@ -24,8 +35,7 @@ export default function KasirPage() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [showReceipt, setShowReceipt] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [lastTransaction, setLastTransaction] = useState<any>(null);
+  const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null);
 
   const cart = useCartStore();
 
@@ -227,7 +237,7 @@ export default function KasirPage() {
                 <p>ID: {lastTransaction.id.slice(-8).toUpperCase()}</p>
               </div>
               <div className="space-y-2 mb-4 border-b pb-4">
-                {lastTransaction.items.map((item: { qty: number; name: string; price: number }, i: number) => (
+                {lastTransaction.items.map((item, i: number) => (
                   <div key={i} className="flex justify-between">
                     <span>{item.qty}x {item.name}</span>
                     <span>Rp {(item.qty * item.price).toLocaleString('id-ID')}</span>

@@ -5,8 +5,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
-
-
 export async function updateStorefront(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user || !session.user.umkmId) throw new Error("Unauthorized");
@@ -20,8 +18,18 @@ export async function updateStorefront(formData: FormData) {
   const mapsUrl = formData.get("mapsUrl") as string;
   const bannerFile = formData.get("banner") as File | null;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any = {
+  interface UmkmUpdateData {
+    name: string;
+    description: string;
+    phone: string;
+    openHours: string;
+    city: string;
+    address: string;
+    mapsUrl: string;
+    bannerUrl?: string;
+  }
+
+  const data: UmkmUpdateData = {
     name,
     description,
     phone,
@@ -44,6 +52,12 @@ export async function updateStorefront(formData: FormData) {
 
   revalidatePath("/storefront/setting");
   revalidatePath("/", "page");
-  revalidatePath(`/warung/${session.user.umkmId}`); // Adjusting revalidate if needed
+  // Sebaiknya revalidate berdasarkan slug agar konsisten dengan URL warung
+  const umkm = await prisma.umkm.findUnique({
+    where: { id: session.user.umkmId },
+    select: { slug: true }
+  });
+  if (umkm) {
+    revalidatePath(`/warung/${umkm.slug}`);
+  }
 }
-
