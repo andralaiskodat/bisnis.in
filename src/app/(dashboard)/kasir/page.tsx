@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 
 export default function KasirPage() {
-  const [products, setProducts] = useState<{ id: string; name: string; price: number; stock: number }[]>([]);
+  const [products, setProducts] = useState<{ id: string; name: string; price: number; stock: number; imageUrl?: string | null }[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
