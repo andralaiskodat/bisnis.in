@@ -15,9 +15,10 @@ export default async function DashboardPage() {
 
   const umkmId = session.user.umkmId;
 
-  // Get transactions for the last 7 days
+  // Get transactions for the last 7 days (start of day)
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
 
   const transactions = await prisma.transaction.findMany({
     where: {

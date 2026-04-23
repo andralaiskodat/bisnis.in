@@ -16,32 +16,47 @@ export async function GET() {
       return NextResponse.json({ error: "No UMKM associated" }, { status: 400 });
     }
 
-    // 1. Ambil data transaksi 7 hari terakhir
+    // 1. Ambil data transaksi 7 hari terakhir (mulai awal hari)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const transactions = await prisma.transaction.findMany({
       where: { umkmId, createdAt: { gte: sevenDaysAgo } },
       include: { items: { include: { product: true } } },
     });
 
-    // 2. Ambil data produk
+    // 2. Ambil data produk & laporan masalah
     const products = await prisma.product.findMany({
       where: { umkmId },
-      select: { name: true, stock: true, price: true, costPrice: true },
     });
 
-    // 3. Olah data
+    const pendingReports = await prisma.transactionReport.count({
+      where: { umkmId, status: "PENDING" },
+    });
+
     let totalRevenue = 0;
     let totalCost = 0;
+    let todayRevenue = 0;
+    let todayTxCount = 0;
     const productSales: Record<string, number> = {};
 
     transactions.forEach((t) => {
+      const isToday = new Date(t.createdAt) >= today;
+      if (isToday) {
+        todayRevenue += t.totalAmount;
+        todayTxCount++;
+      }
+
       t.items.forEach((item) => {
         totalRevenue += item.qty * item.price;
-        totalCost += item.qty * item.product.costPrice;
-        if (!productSales[item.product.name]) productSales[item.product.name] = 0;
-        productSales[item.product.name] += item.qty;
+        totalCost += item.qty * (item.product?.costPrice || 0);
+        const productName = item.product?.name || "Produk Tidak Dikenal";
+        if (!productSales[productName]) productSales[productName] = 0;
+        productSales[productName] += item.qty;
       });
     });
 
@@ -49,24 +64,36 @@ export async function GET() {
     const profitMargin = totalRevenue > 0 ? ((profit / totalRevenue) * 100).toFixed(1) : 0;
     const topSelling = Object.entries(productSales).sort((a, b) => b[1] - a[1]).slice(0, 3);
     const lowStock = products.filter((p) => p.stock < 10);
+    const outOfStock = products.filter((p) => p.stock <= 0);
 
-    // 4. Coba panggil Gemini API via fetch langsung (lebih stabil)
+    // 4. Panggil Gemini API
     const prompt = `Anda adalah AI asisten bisnis UMKM Kuliner untuk platform "Dibisnis.IN".
 Berikan TEPAT 3 insight bisnis singkat dalam Bahasa Indonesia berdasarkan data berikut:
 
-DATA 7 HARI TERAKHIR:
+DATA HARI INI:
+- Pendapatan Hari Ini: Rp ${todayRevenue.toLocaleString("id-ID")}
+- Jumlah Transaksi Hari Ini: ${todayTxCount}
+
+STATISTIK 7 HARI TERAKHIR (termasuk hari ini):
 - Total Pendapatan: Rp ${totalRevenue.toLocaleString("id-ID")}
 - Total Modal: Rp ${totalCost.toLocaleString("id-ID")}
 - Keuntungan Bersih: Rp ${profit.toLocaleString("id-ID")}
 - Margin Keuntungan: ${profitMargin}%
-- Jumlah Transaksi: ${transactions.length}
+- Rata-rata Transaksi: ${(transactions.length / 7).toFixed(1)} per hari
 - Produk Terlaris: ${topSelling.length > 0 ? topSelling.map((p) => `${p[0]} (${p[1]} terjual)`).join(", ") : "Belum ada penjualan"}
-- Stok Hampir Habis (<10): ${lowStock.length > 0 ? lowStock.map((p) => `${p.name} (sisa ${p.stock})`).join(", ") : "Semua stok aman"}
+
+KONDISI OPERASIONAL:
+- Laporan Masalah (Pending): ${pendingReports}
+- Stok Habis (0): ${outOfStock.length} produk (${outOfStock.map(p => p.name).join(", ")})
+- Stok Hampir Habis (<10): ${lowStock.length} produk
 
 Balas HANYA dengan JSON valid tanpa markdown, format persis:
 {"insights":[{"icon":"trending-up","text":"..."},{"icon":"sparkles","text":"..."},{"icon":"clock","text":"..."}]}
 
-Gunakan icon dari: "trending-up", "clock", "sparkles". Masing-masing text maksimal 2 kalimat, bahasa Indonesia yang santai dan profesional.`;
+Instruksi tambahan:
+1. Jika ada 'Laporan Masalah', salah satu insight WAJIB mengingatkan untuk mengecek laporan tersebut.
+2. Jika ada 'Stok Habis', prioritaskan insight tentang restok.
+3. Gunakan icon dari: "trending-up", "clock", "sparkles". Text maksimal 2 kalimat, bahasa Indonesia yang santai dan profesional.`;
 
     try {
       const geminiRes = await fetch(
@@ -99,7 +126,7 @@ Gunakan icon dari: "trending-up", "clock", "sparkles". Masing-masing text maksim
 
       if (parsed?.insights && Array.isArray(parsed.insights) && parsed.insights.length > 0) {
         return NextResponse.json(parsed, {
-          headers: { "Cache-Control": "s-maxage=1800, stale-while-revalidate" },
+          headers: { "Cache-Control": "no-store, max-age=0" },
         });
       }
       throw new Error("Invalid structure from Gemini");
@@ -142,7 +169,14 @@ Gunakan icon dari: "trending-up", "clock", "sparkles". Masing-masing text maksim
     } else {
       fallbackInsights.push({
         icon: "clock",
-        text: "Kondisi stok semua produk Anda saat ini aman. Pertahankan manajemen inventori yang baik ini untuk menjaga kelancaran operasional!",
+        text: "Kondisi stok produk Anda terpantau aman. Pertahankan manajemen inventori yang baik untuk menjaga kelancaran operasional!",
+      });
+    }
+
+    if (pendingReports > 0) {
+      fallbackInsights.push({
+        icon: "clock",
+        text: `Terdapat ${pendingReports} laporan masalah transaksi yang perlu Anda tinjau di menu Laporan. Segera selesaikan untuk akurasi data pembukuan.`,
       });
     }
 
@@ -156,7 +190,7 @@ Gunakan icon dari: "trending-up", "clock", "sparkles". Masing-masing text maksim
 
     return NextResponse.json(
       { insights: fallbackInsights.slice(0, 3) },
-      { headers: { "Cache-Control": "s-maxage=300" } }
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   } catch (error) {
     console.error("AI Insight error:", error);
