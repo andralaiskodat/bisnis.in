@@ -44,8 +44,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4 relative">
-      <Link 
-        href="/" 
+      <Link
+        href="/"
         className="absolute top-6 left-6 flex items-center gap-2 text-gray-500 hover:text-[#1D9E75] transition-colors font-medium text-sm bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100"
       >
         <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
@@ -105,23 +105,18 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-          
+
           <div className="mt-6 border-t pt-6 text-sm text-center text-gray-500">
             <p className="mb-2">Gunakan akun berikut untuk demo:</p>
             <div className="grid grid-cols-2 gap-2 text-left bg-gray-50 p-3 rounded-lg border">
               <div>
-                <strong>Admin:</strong><br/>
-                admin@dibisnis.in<br/>
-                admin123
-              </div>
-              <div>
-                <strong>Owner:</strong><br/>
-                owner@busari.com<br/>
+                <strong>Owner:</strong><br />
+                owner@busari.com<br />
                 admin123
               </div>
             </div>
           </div>
-          
+
           <div className="mt-6 text-center text-sm text-gray-600">
             Belum memiliki akun bisnis?{" "}
             <Link href="/register" className="text-[#1D9E75] font-semibold hover:underline">
